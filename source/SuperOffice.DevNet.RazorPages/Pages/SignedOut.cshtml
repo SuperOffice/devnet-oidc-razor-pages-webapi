@@ -1,0 +1,12 @@
+﻿@page
+@model SuperOffice.DevNet.Asp.Net.RazorPages.SignedOutModel
+@{
+    ViewData["Title"] = "SignedOut";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>You have successfully signed out</h1>
+<div>
+    Didn't mean to logout? <a asp-page="/Index" asp-page-handler="Login">Login Again...</a>
+</div>
+

@@ -1,0 +1,45 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "SuperOffice DevNet";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://community.superoffice.com/en/developer/apps-partners/develop/">building SuperOffice Online applications</a>.</p>
+ </div>
+<div>
+    @if (HttpContext.User.Identity.IsAuthenticated)
+    {
+        <h2>Claims</h2>
+        <table>
+            @foreach (var claim in HttpContext.User.Claims)
+            {
+                <tr>
+                    <td><span style="font: bold">@claim.Type.Substring(claim.Type.LastIndexOf('/') + 1)</span></td>
+                    <td>@claim.Value</td>
+                </tr>
+            }
+        </table>
+        <hr />
+        <h2>Tokens</h2>
+        <div style="overflow-x:auto;">
+            <table>
+                @{ if   (Model.Tokens != null)
+                    {
+                        @foreach (var token in Model.Tokens)
+                        {
+                            <tr>
+                                <td><span style="font: bold">@token.Name</span></td>
+                                <td><span>@token.Value</span></td>
+                            </tr>
+                        }
+                    }
+                }
+            </table>
+        </div>
+    }
+</div>
+<div>
+    <label id="lblRef"></label>
+</div>
