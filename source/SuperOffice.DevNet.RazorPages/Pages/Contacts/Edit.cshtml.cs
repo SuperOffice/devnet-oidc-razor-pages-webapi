@@ -57,7 +57,7 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                 await _context.Update(Contact.ContactId, patch);
             }
 
-            return RedirectToPage("./Index");
+            return RedirectToPage("./Index", new { message = $"{originalContact.Name} updated!"});
         }
     }
 }

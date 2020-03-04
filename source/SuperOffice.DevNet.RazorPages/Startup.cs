@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -98,7 +99,20 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                         context.HandleResponse();
 
                         return Task.CompletedTask;
-                    }
+                    },
+                    OnRedirectToIdentityProvider = context =>
+                    {
+                        //If the URL contains &uctx=, then include that in the URL to the SuperID /authorize endpoint, so that we get a better single-signon experience. 
+                        //This is typically used when the webapplication is hosted as a webpanel inside SuperOffice.
+                        var uctx = context.HttpContext.Request.Query["uctx"];
+                        if (uctx.Count > 0)
+                        {
+                            // Replaces the /common/ section of the URL with the relevant SuperOffice tenant CustId
+                            context.ProtocolMessage.IssuerAddress = context.ProtocolMessage.IssuerAddress.Replace("/login/common", "/login/" + uctx[0]);
+                        }
+
+                        return Task.CompletedTask; //Task.FromResult(0);
+                    },
                 };
 
             });
@@ -110,17 +124,32 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                 options.Cookie.HttpOnly = true;
             });
 
-            services.AddRazorPages()
+            // add notification services
+
+            services.AddMvc() // AddMvc calls AddRazorPages, so all good here...
+                .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_3_0)
                 .AddRazorPagesOptions(options =>
                 {
                     options.Conventions.AuthorizeFolder("/Contacts");
+                })
+                .AddNToastNotifyToastr(null, new NToastNotify.NToastNotifyOption { DisableAjaxToasts = false }) ;
 
-                });
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.All;
+                options.ForwardLimit = 4;
+                //options.KnownProxies.Add(System.Net.IPAddress.Parse("127.0.10.1"));
+                //options.ForwardedForHeaderName = "X-NToastNotify-Messages";
+                //options.ForwardedHeaders.
+            });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IAntiforgery antiforgery)
         {
+            app.UseForwardedHeaders();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -135,12 +164,12 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
-
             app.UseRouting();
 
             // Add this before any other middleware that might write cookies
             app.UseCookiePolicy();
-            
+
+            app.UseNToastNotify();
             // This will write cookies, so make sure it's after the cookie policy
             app.UseAuthentication();
             app.UseAuthorization();

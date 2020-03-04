@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NToastNotify;
 using SuperOffice.DevNet.Asp.Net.RazorPages.Data;
 using SuperOffice.DevNet.Asp.Net.RazorPages.Models;
 
@@ -18,11 +19,14 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
 {
     public class CreateModel : PageModel
     {
+        private readonly IToastNotification _toastNotification;
+
         private readonly ContactDbContext _context;
 
-        public CreateModel(ContactDbContext context)
+        public CreateModel(ContactDbContext context, IToastNotification toastNotification)
         {
             _context = context;
+            _toastNotification = toastNotification;
         }
 
         public async Task<IActionResult> OnGet()
@@ -46,8 +50,8 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                 return Page();
             }
             var contact = await _context.Save(Contact);
-           
-            return RedirectToPage("./Index");
+            //_toastNotification.AddSuccessToastMessage($"New contact '{contact.Name}' saved!");
+            return RedirectToPage("./Index", new { message = $"New contact '{contact.Name}' created!" });
         }
     }
 }

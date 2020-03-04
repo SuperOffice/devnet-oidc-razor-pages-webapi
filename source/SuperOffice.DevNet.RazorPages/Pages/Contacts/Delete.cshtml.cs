@@ -47,7 +47,7 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
             
             await _context.Delete(id);
             
-            return RedirectToPage("./Index");
+            return RedirectToPage("./Index", new { message = $"Contact '{id}' deleted!" });
         }
     }
 }

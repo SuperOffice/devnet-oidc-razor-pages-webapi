@@ -32,7 +32,9 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Department)
             </td>
+
             <td>
+
                 <a asp-page="./Edit" asp-route-id="@item.ContactId">Edit</a> |
                 <a asp-page="./Details" asp-route-id="@item.ContactId">Details</a> |
                 <a asp-page="./Delete" asp-route-id="@item.ContactId">Delete</a>

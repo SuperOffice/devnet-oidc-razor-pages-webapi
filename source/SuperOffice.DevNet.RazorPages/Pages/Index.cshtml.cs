@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using NToastNotify;
 
 namespace SuperOffice.DevNet.Asp.Net.RazorPages.Pages
 {
@@ -18,11 +19,13 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Pages
 
         private readonly ILogger<IndexModel> _logger;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IToastNotification _toastNotification;
 
-        public IndexModel(ILogger<IndexModel> logger, IHttpContextAccessor contextAccessor)
+        public IndexModel(ILogger<IndexModel> logger, IHttpContextAccessor contextAccessor, IToastNotification toastNotification)
         {
             _logger = logger;
             _contextAccessor = contextAccessor;
+            _toastNotification = toastNotification;
         }
 
         public IEnumerable<AuthenticationToken> Tokens { get; private set; }
@@ -35,6 +38,8 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Pages
             {
                 Tokens = result.Properties.GetTokens();
             }
+
+            _toastNotification.AddInfoToastMessage("Welcome!");
         }
     }
 }

@@ -54,6 +54,8 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Data
             Contacts.Add(newContact);
             await SaveChangesAsync();
 
+            
+
             return newContact;
         }
 
