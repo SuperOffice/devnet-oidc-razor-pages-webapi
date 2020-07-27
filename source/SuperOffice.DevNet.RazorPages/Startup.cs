@@ -64,7 +64,7 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
 
                 options.Authority = $"https://{suoEnv["Environment"]}.superoffice.com/login";
 
-                options.ClaimsIssuer = $"https://sod.superoffice.com";
+                options.ClaimsIssuer = $"https://{suoEnv["Environment"]}.superoffice.com";
 
                 options.ClientId = suoEnv["ClientId"];
                 options.ClientSecret = suoEnv["ClientSecret"];
