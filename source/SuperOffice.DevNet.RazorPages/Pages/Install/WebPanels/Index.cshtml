@@ -1,0 +1,66 @@
+﻿@page
+@model SuperOffice.DevNet.Asp.Net.RazorPages.Pages.Install.WebPanels.IndexModel
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Index</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <p>
+            <a class="btn btn-superoffice" asp-page="Create">Create New</a>
+        </p>
+    </div>
+    <div class="col-md-6">
+        <p>
+            <a class="btn btn-superoffice" asp-page="DeleteAll">Delete All My App Panels</a>
+        </p>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.WebPanelList[0].Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WebPanelList[0].Tooltip)
+            </th>
+            <th>Can only manage own web panels</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.WebPanelList)
+        {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tooltip)
+            </td>
+
+            <td>
+                @if (@item.IsAppWebPanel)
+                {
+                    <div>
+                        <a asp-page="./Edit" asp-route-id="@item.WebPanelId">Edit</a> |
+                        <a asp-page="./Details" asp-route-id="@item.WebPanelId">Details</a> |
+                        <a asp-page="./Delete" asp-route-id="@item.WebPanelId">Delete</a>
+                    </div>
+                }
+                else
+                {
+                    <a asp-page="./Details" asp-route-id="@item.WebPanelId">Details</a>
+                }
+
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+

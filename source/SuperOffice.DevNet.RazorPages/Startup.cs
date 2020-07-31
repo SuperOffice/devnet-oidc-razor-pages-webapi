@@ -1,17 +1,22 @@
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using SuperOffice.DevNet.Asp.Net.RazorPages.Data;
+using SuperOffice.DevNet.Asp.Net.RazorPages.Models.Identity;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SuperOffice.DevNet.Asp.Net.RazorPages
@@ -21,14 +26,12 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
         }
 
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-
             //make sure the antiforgery cookies will be forwarded in iframe...
             services.AddAntiforgery(options =>
             {
@@ -42,9 +45,15 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
 
             services.AddHttpClient();
             services.AddDbContext<ContactDbContext>(options => options.UseInMemoryDatabase("superoffice"));
-            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddTransient<IHttpRestClient, SoHttpRestClient>();
+            services.AddDbContext<UserDbContext>(options => options.UseInMemoryDatabase("users"));
+            services.AddDbContext<ProvisioningDbContext>(options => options.UseInMemoryDatabase("provisioner"));
 
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            
+            services.AddTransient<IUserManager, LocalUserManager>();
+            services.AddTransient<ISignInManager, LocalSignInManager>();
+            services.AddTransient<IHttpRestClient, SoHttpRestClient>();
+            
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -53,14 +62,19 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
             })
             .AddCookie(options =>
             {
+                options.LoginPath = "/account/login";
+                options.AccessDeniedPath = "/account/accessdenied";
+
                 options.Cookie.SameSite = SameSiteMode.None;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.IsEssential = true;
                 options.Cookie.HttpOnly = true;
             })
-            .AddOpenIdConnect("SuperOffice", options =>
+            .AddOpenIdConnect("SuperOffice", "SuperOffice", options =>
             {
                 var suoEnv = Configuration.GetSection("SuperOffice");
+
+                options.SignInScheme = IdentityConstants.ExternalScheme;
 
                 options.Authority = $"https://{suoEnv["Environment"]}.superoffice.com/login";
 
@@ -75,6 +89,7 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                 options.Scope.Add("openid");
                 options.SaveTokens = true;
                 options.CallbackPath = new Microsoft.AspNetCore.Http.PathString("/callback");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Email, "http://schemes.superoffice.net/identity/email");
 
                 options.Events = new OpenIdConnectEvents
                 {
@@ -115,7 +130,8 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                     },
                 };
 
-            });
+            })
+            .AddCookie(IdentityConstants.ExternalScheme);
             services.AddSession(options =>
             {
                 options.Cookie.SameSite = SameSiteMode.None;
@@ -126,7 +142,9 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
 
             // add notification services
 
-            services.AddMvc() // AddMvc calls AddRazorPages, so all good here...
+            services.AddMvc()
+                .AddRazorRuntimeCompilation()
+                // AddMvc calls AddRazorPages, so all good here...
                 .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_3_0)
                 .AddRazorPagesOptions(options =>
                 {

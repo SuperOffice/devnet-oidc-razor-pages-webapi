@@ -18,16 +18,28 @@ a {
   border-color: #1861ac;
 }
 
+.btn-superoffice {
+    color: #ffffff;
+    background-color: #d4450d;
+    border-color: #d4450d;
+}
+
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
   color: #fff;
   background-color: #1b6ec2;
   border-color: #1861ac;
 }
 
+.bg-superoffice {
+    background-color: #0A5E58;
+    border-color: #0A5E58;
+}
+
+
 /* Sticky footer styles
 -------------------------------------------------- */
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 @media (min-width: 768px) {
   html {

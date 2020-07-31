@@ -16,16 +16,20 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
             await OnGetLogout();
         }
 
-        public async Task OnGetLogout()
+        public async Task<IActionResult> OnGetLogout()
         {
-            await HttpContext.SignOutAsync("SuperOffice", new AuthenticationProperties
-            {
-                // Indicate here where Auth0 should redirect the user after a logout.
-                // Note that the resulting absolute Uri must be whitelisted in the
-                // **Allowed Logout URLs** settings for the app.
-                RedirectUri = "/"
-            });
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync();
+
+            //await HttpContext.SignOutAsync("SuperOffice", new AuthenticationProperties
+            //{
+            //    // Indicate here where Auth0 should redirect the user after a logout.
+            //    // Note that the resulting absolute Uri must be whitelisted in the
+            //    // **Allowed Logout URLs** settings for the app.
+            //    RedirectUri = "/"
+            //});
+            //await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return RedirectToPage("/Index", new { message = "Logged out!" });
         }
     }
 }

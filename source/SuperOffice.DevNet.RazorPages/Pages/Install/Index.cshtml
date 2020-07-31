@@ -1,0 +1,37 @@
+﻿@page
+@model SuperOffice.DevNet.Asp.Net.RazorPages.Pages.Install.IndexModel
+@{
+    ViewData["Title"] = "Provisioning";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+<h1>Manually Provision Extensibility Points</h1>
+
+<p>Edit features by clicking the appropriate button...</p>
+<div class="card-group">
+    <div class="card text-white bg-superoffice">
+        <h5 class="card-header">Web Panels</h5>
+        <div class="card-body" style="background-color: #ffffff; color: black;">
+            <h5 class="card-title">Brings view in SuperOffice</h5>
+            <p class="card-text">Web panels are iframe elements displaying external content inside SuperOffice.</p>
+            <a asp-page="./WebPanels/Index" class="btn btn-superoffice">Manage web panels</a>
+        </div>
+    </div>
+    <div class="card text-white bg-superoffice">
+        <h5 class="card-header">User-Defined Fields</h5>
+        <div class="card-body" style="background-color: #ffffff; color: black;">
+            <h5 class="card-title">Extends existing entity data model</h5>
+            <p class="card-text">Create new properties for companies, contacts, projects and sales.</p>
+            <a href="#" class="btn btn-superoffice">Coming soon...</a>
+        </div>
+    </div>
+    <div class="card text-white bg-superoffice">
+        <h5 class="card-header">User-Defined Lists</h5>
+        <div class="card-body" style="background-color: #ffffff; color: black;">
+            <h5 class="card-title">Custom lists for new properties</h5>
+            <p class="card-text">Create your own lists for populating user-defined fields, or your apps!</p>
+            <a href="#" class="btn btn-superoffice">Coming soon...</a>
+        </div>
+    </div>
+
+</div>
+

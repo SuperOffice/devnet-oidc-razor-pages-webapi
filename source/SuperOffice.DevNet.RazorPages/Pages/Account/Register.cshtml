@@ -1,0 +1,41 @@
+﻿@page
+@inject Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider schemeProvider
+@model SuperOffice.DevNet.Asp.Net.RazorPages.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Registration Page";
+}
+
+<h1>Register</h1>
+
+<form class="form-horizontal" method="post" novalidate>
+    <h2 class="form-heading">Please fill in registration information</h2>
+    <hr />
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group">
+        <label for="inputEmail" class="sr-only">Email address</label>
+        <input type="email" asp-for="FormInput.Email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus />
+    </div>
+    <div class="form-group">
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" asp-for="FormInput.Password" id="inputPassword" class="form-control" placeholder="Password" required />
+    </div>
+    <div class="form-group">
+        <label for="inputRepeatPassword" class="sr-only">Repeat Password</label>
+        <input type="password" asp-for="FormInput.RepeatPassword" id="inputRepeatPassword" class="form-control last" placeholder="Repeat Password" required />
+    </div>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <button class="btn btn-secondary btn-sm" type="submit">Register</button>
+        </div>
+    </div>
+</form>
+
+<hr />
+
+@await Html.PartialAsync("./_ExternalLoginPartial", Model.ExternalLogins)
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

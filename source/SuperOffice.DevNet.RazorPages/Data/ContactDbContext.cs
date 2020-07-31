@@ -12,9 +12,9 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Data
 {
     public class ContactDbContext : DbContext
     {
-        private IHttpRestClient _restClient;
+        private readonly IHttpRestClient _restClient;
 
-        public ContactDbContext(DbContextOptions options, IHttpRestClient restClient)
+        public ContactDbContext(DbContextOptions<ContactDbContext> options, IHttpRestClient restClient)
             : base(options)
         {
             _restClient = restClient;
@@ -114,23 +114,10 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Data
         public bool TryGetChanges(Contact oldContact, Contact newContact, out JArray patch)
         {
             // pull out only the fields needed to update and add those changes as a PATCH structure
-            bool updated = false;
             patch = JArray.Parse("[]");
-
-            if (!oldContact.Name.Equals(newContact.Name))
-            {
-                var stringFormat = "{ 'op': 'replace', 'path': '/Name', 'value': 'VALUE' }";
-                patch.Add(JToken.Parse(stringFormat.Replace("VALUE", newContact.Name)));
-                updated = true;
-            }
-
-            if (!oldContact.Department.Equals(newContact.Department))
-            {
-                var stringFormat = "{ 'op': 'replace', 'path': '/Department', 'value': 'VALUE' }";
-                patch.Add(JToken.Parse(stringFormat.Replace("VALUE", newContact.Department)));
-                updated = true;
-            }
-
+            bool updated = false;
+            updated = patch.CompareAndReplace(oldContact.Name, newContact.Name, "/Name");
+            updated = patch.CompareAndReplace(oldContact.Department, newContact.Department, "/Department");
             return updated;
         }
 

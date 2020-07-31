@@ -38,16 +38,16 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id)
+        public async Task<IActionResult> OnPostAsync()
         {
-            if (id == null)
+            if (Contact == null || !(Contact.ContactId > 0))
             {
                 return NotFound();
             }
             
-            await _context.Delete(id);
+            await _context.Delete(Contact.ContactId);
             
-            return RedirectToPage("./Index", new { message = $"Contact '{id}' deleted!" });
+            return RedirectToPage("./Index", new { message = $"Contact '{Contact.ContactId}' deleted!" });
         }
     }
 }

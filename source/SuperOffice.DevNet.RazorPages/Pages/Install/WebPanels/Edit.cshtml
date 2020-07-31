@@ -1,0 +1,74 @@
+﻿@page
+@model SuperOffice.DevNet.Asp.Net.RazorPages.Pages.Install.WebPanels.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Edit</h1>
+
+<h4>Contact</h4>
+<hr />
+<form method="post">
+    <div class="row">
+        <div class="col-md-4">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="WebPanel.WebPanelId" />
+            <div class="form-group">
+                <label asp-for="WebPanel.Name" class="control-label"></label>
+                <input asp-for="WebPanel.Name" class="form-control" />
+                <span asp-validation-for="WebPanel.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebPanel.Tooltip" class="control-label"></label>
+                <input asp-for="WebPanel.Tooltip" class="form-control" />
+                <span asp-validation-for="WebPanel.Tooltip" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="WebPanel.Url" class="control-label"></label>
+                <input asp-for="WebPanel.Url" class="form-control" />
+                <span asp-validation-for="WebPanel.Url" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebPanel.UrlEncoding" class="control-label"></label>
+                <input asp-for="WebPanel.UrlEncoding" class="form-control" />
+                <span asp-validation-for="WebPanel.UrlEncoding" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebPanel.VisibleIn" class="control-label"></label>
+                <select asp-for="WebPanel.VisibleIn" asp-items="Model.VisibleIn">
+                    <option value=""></option>
+                </select>
+                <span asp-validation-for="WebPanel.VisibleIn" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebPanel.ProgId" class="control-label"></label>
+                <input asp-for="WebPanel.ProgId" class="form-control" />
+                <span asp-validation-for="WebPanel.ProgId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebPanel.OnSalesMarketingPocket" class="control-label"></label>
+                @Html.CheckBoxFor(model => model.WebPanel.OnSalesMarketingPocket)
+                <span asp-validation-for="WebPanel.OnSalesMarketingPocket" class="text-danger"></span>
+            </div>
+
+
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-superoffice" />
+            </div>
+        </div>
+        <div class="col-md-6 col-md-offset-2">
+            @await Html.PartialAsync("./_UserGroupsPartial", Model.UserGroups)
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

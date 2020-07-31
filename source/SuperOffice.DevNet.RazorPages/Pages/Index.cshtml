@@ -4,10 +4,6 @@
     ViewData["Title"] = "SuperOffice DevNet";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://community.superoffice.com/en/developer/create-apps/">building SuperOffice Online applications</a>.</p>
- </div>
 <div>
     @if (HttpContext.User.Identity.IsAuthenticated)
     {
@@ -38,7 +34,20 @@
                 }
             </table>
         </div>
-    }
+                    }
+                    else
+                    {
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+
+    <h2>Options:</h2>
+    <ul class="list-group">
+        <li class="list-group-item">Click <i>Login</i> to Login or Register</li>
+        <li class="list-group-item">Learn about <a href="https://community.superoffice.com/en/developer/create-apps/">building SuperOffice Online applications</a>.</li>
+    </ul>
+
+</div>
+                    }
 </div>
 <div>
     <label id="lblRef"></label>

@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using NToastNotify;
+using System.Collections.Generic;
 
 namespace SuperOffice.DevNet.Asp.Net.RazorPages.Pages
 {
@@ -30,7 +23,7 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Pages
 
         public IEnumerable<AuthenticationToken> Tokens { get; private set; }
 
-        public async void OnGet()
+        public async void OnGet(string message)
         {
             var result = await _contextAccessor.HttpContext.AuthenticateAsync();
 
@@ -38,8 +31,17 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Pages
             {
                 Tokens = result.Properties.GetTokens();
             }
+            
+            if (!string.IsNullOrEmpty(message))
+            {
+                _toastNotification.AddInfoToastMessage(message);
+                RouteData.Values.Remove("message");
+            }
+            else
+            {
+                _toastNotification.AddInfoToastMessage("Welcome!");
+            }
 
-            _toastNotification.AddInfoToastMessage("Welcome!");
         }
     }
 }

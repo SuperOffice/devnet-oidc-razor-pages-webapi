@@ -9,9 +9,9 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-superoffice border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">SuperOffice DevNet Razor Pages</a>
+                <a class="navbar-brand" asp-area="" asp-page="/Index">Supra Inc.</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -19,26 +19,31 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+                            <a class="nav-link text-light" asp-area="" asp-page="/Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
+                            <a class="nav-link text-light" asp-area="" asp-page="/Privacy">Privacy</a>
                         </li>
                         <li class="nav-item">
                             @if (User.Identity.IsAuthenticated)
                             {
-                                <div>@User.Identity.Name</div>
-                                <a class="nav-link text-dark" asp-page="/Account/Logout" asp-page-handler="Logout">Logout</a>
+                                <a class="nav-link text-light" asp-page="/Account/Logout" asp-page-handler="Logout">Logout</a>
                             }
                             else
                             {
-                                ///Account/Login?handler=Login
-                                <a class="nav-link text-dark" asp-page="/Account/Login" asp-page-handler="Login">Login</a>
+                                <a class="nav-link text-light" asp-page="/Account/Login" asp-page-handler="Login">Login</a>
                             }
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Contacts/Index">Contacts</a>
-                        </li>
+                        @if (User.Identity.IsAuthenticated && User.Identity.AuthenticationType == "SuperOffice")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-page="/Contacts/Index">Contacts</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-page="/Install/Index">Provision</a>
+                            </li>
+                        }
+
                     </ul>
                 </div>
             </div>

@@ -1,8 +1,4 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-
-const DevNet = function () {
+﻿const DevNet = function () {
     /// <summary>DevNet object</summary>
     var pub = {};
 
@@ -19,6 +15,12 @@ const DevNet = function () {
     pub.init = function () {
         $(window).on('load', function () {
             console.log("DevNet window loaded!");
+
+            var uri = window.location.toString();
+            if (uri.indexOf("?") > 0) {
+                var clean_uri = uri.substring(0, uri.indexOf("?"));
+                window.history.replaceState({}, document.title, clean_uri);
+            }
         });
 
         $(window).on('unload', function () {

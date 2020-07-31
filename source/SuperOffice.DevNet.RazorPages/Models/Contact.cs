@@ -1,13 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SuperOffice.DevNet.Asp.Net.RazorPages.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-
-namespace SuperOffice.DevNet.Asp.Net.RazorPages.Models
+﻿namespace SuperOffice.DevNet.Asp.Net.RazorPages.Models
 {
     public class Contact
     {
