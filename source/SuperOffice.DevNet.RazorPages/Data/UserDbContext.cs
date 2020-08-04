@@ -22,10 +22,10 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Data
             return efUser.Entity;
         }
 
-        public async Task<User> FindUser(string userName, string provider)
+        public async Task<User> FindUser(string identifier, string provider)
         {
             var efUser = await Users.FirstOrDefaultAsync(u=>u.ProviderName == provider 
-                && u.UserName.Equals(userName, StringComparison.InvariantCultureIgnoreCase));
+                && u.UniqueIdentifier.Equals(identifier, StringComparison.InvariantCultureIgnoreCase));
             return efUser;
         }
     }

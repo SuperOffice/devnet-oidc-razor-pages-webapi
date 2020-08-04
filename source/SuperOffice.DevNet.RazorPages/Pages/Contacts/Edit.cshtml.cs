@@ -51,7 +51,6 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
 
             var originalContact = await _context.Contacts.AsNoTracking().FirstOrDefaultAsync(m => m.ContactId == Contact.ContactId);
 
-
             if (_context.TryGetChanges(originalContact, Contact, out JArray patch))
             {
                 await _context.Update(Contact.ContactId, patch);

@@ -33,9 +33,9 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Models.Identity
             return Task.FromResult(new User());
         }
 
-        public Task<User> FindByLoginAsync(string provider, string userName)
+        public Task<User> FindByLoginAsync(string provider, string identifier)
         {
-            return userContext.FindUser(userName, provider);
+            return userContext.FindUser(identifier, provider);
         }
 
         public async Task<User> Register(string email, string password)
@@ -51,13 +51,14 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Models.Identity
 
         }
 
-        public async Task<User> RegisterExternal(string provider, string email)
+        public async Task<User> RegisterExternal(string provider, string identifier, string username, string email)
         {
             var user = new User()
             {
-                UserName = email,
+                UserName = username,
                 Email = email,
-                ProviderName = provider
+                ProviderName = provider,
+                UniqueIdentifier = identifier
             };
 
             return await userContext.AddUser(user);

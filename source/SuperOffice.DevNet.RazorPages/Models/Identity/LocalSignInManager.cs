@@ -29,6 +29,7 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Models.Identity
         public virtual async Task<ExternalLoginInfo> GetExternalLoginInfoAsync(string expectedXsrf = null)
         {
             var auth = await contextAccessor.HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
+            
             var items = auth?.Properties?.Items;
             if (auth?.Principal == null || items == null || !items.ContainsKey(LoginProviderKey))
             {
@@ -48,7 +49,9 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Models.Identity
                 }
             }
 
+            // get the users unique id from the IdP
             var providerKey = auth.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            
             var provider = items[LoginProviderKey] as string;
             if (providerKey == null || provider == null)
             {
@@ -57,6 +60,7 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Models.Identity
 
             var providerDisplayName = (await contextAccessor.HttpContext.GetExternalProvidersAsync()).FirstOrDefault(p => p.Name == provider)?.DisplayName
                                       ?? provider;
+
             return new ExternalLoginInfo(auth.Principal, provider, providerKey, providerDisplayName)
             {
                 AuthenticationTokens = auth.Properties.GetTokens(),
@@ -64,14 +68,18 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Models.Identity
             };
         }
 
-        public async Task<Microsoft.AspNetCore.Identity.SignInResult> SignInExternalUserAsync(string providerName, string userName)
+        public async Task<Microsoft.AspNetCore.Identity.SignInResult> SignInExternalUserAsync(string providerName, string identifier)
         {
-            var user = await userManager.FindByLoginAsync(providerName, userName);
+            var user = await userManager.FindByLoginAsync(providerName, identifier);
+            return await SignInExternalUserAsync(providerName, user);
+        }
 
+        public async Task<Microsoft.AspNetCore.Identity.SignInResult> SignInExternalUserAsync(string providerName, User user)
+        {
             if (user == null)
                 return Microsoft.AspNetCore.Identity.SignInResult.Failed;
 
-            // Cleanup external cookie
+            // Cleanup external cookie if necessary
             if (providerName != null)
             {
                 await contextAccessor.HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);

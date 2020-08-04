@@ -11,5 +11,6 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Models.Identity
         }
 
         public string ProviderName { get; set; }
+        public string UniqueIdentifier { get; set; }
     }
 }

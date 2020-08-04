@@ -125,7 +125,14 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Data
                     returnHeaders["TimeZone"] = GetHeader(msg.Headers, "SO-TimeZone");
                 }
 
-                return await msg.Content.ReadAsStringAsync();
+                if(httpVerb == HttpMethod.Delete)
+                {
+                    return msg.StatusCode.ToString();
+                }
+                else
+                {
+                    return await msg.Content.ReadAsStringAsync();
+                }
             }
         }
 
@@ -265,111 +272,117 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Data
 
         private async Task<string> GetAccessToken()
         {
-            string accessToken = string.Empty;
+            //string accessToken = string.Empty;
+
+            // should be have fresh token from RefreshTokenMiddleware
 
             var authService = _context.RequestServices.GetRequiredService<IAuthenticationService>();
             AuthenticateResult authenticateResult = await authService.AuthenticateAsync(_context, null);
             AuthenticationProperties properties = authenticateResult.Properties;
-            var expiresAt = properties.GetTokenValue("expires_at");
 
-            DateTime accessTokenExpiresAt = DateTime.Parse(expiresAt, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+
+            return properties.GetTokenValue(OpenIdConnectParameterNames.AccessToken);
+
+            //var expiresAt = properties.GetTokenValue("expires_at");
+
+            //DateTime accessTokenExpiresAt = DateTime.Parse(expiresAt, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
             
-            if (accessTokenExpiresAt > DateTime.UtcNow)
-            {
-                accessToken = properties.GetTokenValue(OpenIdConnectParameterNames.AccessToken);
-            }
-            else
-            {
-                var refreshToken = properties.GetTokenValue(OpenIdConnectParameterNames.RefreshToken);
-                accessToken = await RefreshAccessTokenAsync(refreshToken);
-            }
-
-            return accessToken;
-        }
-
-        private async Task<string> RefreshAccessTokenAsync(string refreshToken)
-        {
-            var (options, configuration) = await GetOpenIdConnectSettingsAsync(OpenIdConnectDefaults.AuthenticationScheme);
-
-            var parameters = new System.Collections.Generic.Dictionary<string, string> {
-                { OpenIdConnectParameterNames.ClientId, options.ClientId },
-                { OpenIdConnectParameterNames.ClientSecret, options.ClientSecret },
-                { OpenIdConnectParameterNames.RefreshToken, refreshToken },
-                { OpenIdConnectParameterNames.RedirectUri, options.CallbackPath},
-                { OpenIdConnectParameterNames.GrantType, OpenIdConnectParameterNames.RefreshToken }
-            };
-
-            var encodedContent = new FormUrlEncodedContent(parameters);
-
-
-            var tokenResponse = await options.Backchannel.PostAsync(
-                configuration.TokenEndpoint, encodedContent, _context.RequestAborted);
-
-            tokenResponse.EnsureSuccessStatusCode();
-
-            var responseStream = await tokenResponse.Content.ReadAsStringAsync();
-            
-            //var payLoad = System.Text.Json.JsonDocument
-            //props.UpdateTokenValue("access_token", payload.RootElement.GetString("access_token"));
-            //props.UpdateTokenValue("refresh_token", payload.RootElement.GetString("refresh_token"));
-            //if (payload.RootElement.TryGetProperty("expires_in", out var property) && property.TryGetInt32(out var seconds))
+            //if (accessTokenExpiresAt > DateTime.UtcNow)
             //{
-            //    var expiresAt = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(seconds);
-            //    props.UpdateTokenValue("expires_at", expiresAt.ToString("o", CultureInfo.InvariantCulture));
-            //}.Parse(responseStream);
-            
-            var json = JObject.Parse(responseStream);
-            string accessToken = json[OpenIdConnectParameterNames.AccessToken].Value<string>();
-            string idToken = json[OpenIdConnectParameterNames.IdToken].Value<string>();
-            //string tokenType = json[OpenIdConnectParameterNames.TokenType].Value<string>(); //we know what it is...
-            int expiresIn = json[OpenIdConnectParameterNames.ExpiresIn].Value<int>();
+            //    accessToken = properties.GetTokenValue(OpenIdConnectParameterNames.AccessToken);
+            //}
+            //else
+            //{
+            //    var refreshToken = properties.GetTokenValue(OpenIdConnectParameterNames.RefreshToken);
+            //    accessToken = await RefreshAccessTokenAsync(refreshToken);
+            //}
 
-            // TY: Should this be UtcNow? I have my doubts... 
-            var expiresAt = (DateTime.UtcNow + TimeSpan.FromSeconds(expiresIn)).ToString("o", CultureInfo.InvariantCulture);
-            
-            var authenticatedContext = await _context.AuthenticateAsync();
-            var authProperties = authenticatedContext.Properties;
-            authProperties.UpdateTokenValue(OpenIdConnectParameterNames.AccessToken, accessToken);
-            authProperties.UpdateTokenValue(OpenIdConnectParameterNames.IdToken, idToken);
-            authProperties.UpdateTokenValue(OpenIdConnectParameterNames.ExpiresIn, expiresIn.ToString());
-            //authProperties.UpdateTokenValue(OpenIdConnectParameterNames.TokenType, tokenType);
-            authProperties.UpdateTokenValue("expires_at", expiresAt);
-            await _context.SignInAsync(_context.User, authProperties);
-            return accessToken;
-
+            //return accessToken;
         }
 
-        private async Task<(OpenIdConnectOptions options, OpenIdConnectConfiguration configuration)> GetOpenIdConnectSettingsAsync(string schemeName)
-        {
-            OpenIdConnectOptions options;
+        //private async Task<string> RefreshAccessTokenAsync(string refreshToken)
+        //{
+        //    var (options, configuration) = await GetOpenIdConnectSettingsAsync(OpenIdConnectDefaults.AuthenticationScheme);
 
-            if (string.IsNullOrWhiteSpace(schemeName))
-            {
-                var scheme = await _schemeProvider.GetDefaultChallengeSchemeAsync();
+        //    var parameters = new System.Collections.Generic.Dictionary<string, string> {
+        //        { OpenIdConnectParameterNames.ClientId, options.ClientId },
+        //        { OpenIdConnectParameterNames.ClientSecret, options.ClientSecret },
+        //        { OpenIdConnectParameterNames.RefreshToken, refreshToken },
+        //        { OpenIdConnectParameterNames.RedirectUri, options.CallbackPath},
+        //        { OpenIdConnectParameterNames.GrantType, OpenIdConnectParameterNames.RefreshToken }
+        //    };
 
-                if (scheme is null)
-                {
-                    throw new InvalidOperationException("No OpenID Connect authentication scheme configured for getting client configuration. Either set the scheme name explicitly or set the default challenge scheme");
-                }
+        //    var encodedContent = new FormUrlEncodedContent(parameters);
 
-                options = _oidcOptions.Get(scheme.Name);
-            }
-            else
-            {
-                options = _oidcOptions.Get(schemeName);
-            }
 
-            OpenIdConnectConfiguration configuration;
-            try
-            {
-                configuration = await options.ConfigurationManager.GetConfigurationAsync(_context.RequestAborted);
-            }
-            catch (Exception e)
-            {
-                throw new InvalidOperationException($"Unable to load OpenID configuration for configured scheme: {e.Message}");
-            }
+        //    var tokenResponse = await options.Backchannel.PostAsync(
+        //        configuration.TokenEndpoint, encodedContent, _context.RequestAborted);
 
-            return (options, configuration);
-        }
+        //    tokenResponse.EnsureSuccessStatusCode();
+
+        //    var responseStream = await tokenResponse.Content.ReadAsStringAsync();
+            
+        //    //var payLoad = System.Text.Json.JsonDocument
+        //    //props.UpdateTokenValue("access_token", payload.RootElement.GetString("access_token"));
+        //    //props.UpdateTokenValue("refresh_token", payload.RootElement.GetString("refresh_token"));
+        //    //if (payload.RootElement.TryGetProperty("expires_in", out var property) && property.TryGetInt32(out var seconds))
+        //    //{
+        //    //    var expiresAt = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(seconds);
+        //    //    props.UpdateTokenValue("expires_at", expiresAt.ToString("o", CultureInfo.InvariantCulture));
+        //    //}.Parse(responseStream);
+            
+        //    var json = JObject.Parse(responseStream);
+        //    string accessToken = json[OpenIdConnectParameterNames.AccessToken].Value<string>();
+        //    string idToken = json[OpenIdConnectParameterNames.IdToken].Value<string>();
+        //    //string tokenType = json[OpenIdConnectParameterNames.TokenType].Value<string>(); //we know what it is...
+        //    int expiresIn = json[OpenIdConnectParameterNames.ExpiresIn].Value<int>();
+
+        //    // TY: Should this be UtcNow? I have my doubts... 
+        //    var expiresAt = (DateTime.UtcNow + TimeSpan.FromSeconds(expiresIn)).ToString("o", CultureInfo.InvariantCulture);
+            
+        //    var authenticatedContext = await _context.AuthenticateAsync();
+        //    var authProperties = authenticatedContext.Properties;
+        //    authProperties.UpdateTokenValue(OpenIdConnectParameterNames.AccessToken, accessToken);
+        //    authProperties.UpdateTokenValue(OpenIdConnectParameterNames.IdToken, idToken);
+        //    authProperties.UpdateTokenValue(OpenIdConnectParameterNames.ExpiresIn, expiresIn.ToString());
+        //    //authProperties.UpdateTokenValue(OpenIdConnectParameterNames.TokenType, tokenType);
+        //    authProperties.UpdateTokenValue("expires_at", expiresAt);
+        //    await _context.SignInAsync(_context.User, authProperties);
+        //    return accessToken;
+
+        //}
+
+        //private async Task<(OpenIdConnectOptions options, OpenIdConnectConfiguration configuration)> GetOpenIdConnectSettingsAsync(string schemeName)
+        //{
+        //    OpenIdConnectOptions options;
+
+        //    if (string.IsNullOrWhiteSpace(schemeName))
+        //    {
+        //        var scheme = await _schemeProvider.GetDefaultChallengeSchemeAsync();
+
+        //        if (scheme is null)
+        //        {
+        //            throw new InvalidOperationException("No OpenID Connect authentication scheme configured for getting client configuration. Either set the scheme name explicitly or set the default challenge scheme");
+        //        }
+
+        //        options = _oidcOptions.Get(scheme.Name);
+        //    }
+        //    else
+        //    {
+        //        options = _oidcOptions.Get(schemeName);
+        //    }
+
+        //    OpenIdConnectConfiguration configuration;
+        //    try
+        //    {
+        //        configuration = await options.ConfigurationManager.GetConfigurationAsync(_context.RequestAborted);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        throw new InvalidOperationException($"Unable to load OpenID configuration for configured scheme: {e.Message}");
+        //    }
+
+        //    return (options, configuration);
+        //}
     }
 }

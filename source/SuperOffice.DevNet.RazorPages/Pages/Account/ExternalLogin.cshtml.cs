@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace SuperOffice.DevNet.Asp.Net.RazorPages.Pages.Account
@@ -82,6 +84,8 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Pages.Account
                 // If the user does not have an account, then ask the user to create an account.
                 ReturnUrl = returnUrl;
                 LoginProvider = info.LoginProvider;
+
+                // Most IdPs use ClaimTypes.Email, but not all... 
                 if (info.Principal.HasClaim(c => c.Type.Contains("email")))
                 {
                     var claim = info.Principal.Claims.Where(c => c.Type.Contains("email")).FirstOrDefault();
@@ -104,9 +108,11 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Pages.Account
                 {
                     throw new ApplicationException("Error loading external login information during confirmation.");
                 }
-                
-                var user = await userManager.RegisterExternal(info.LoginProvider, Input.Email);
-                var result = await signInManager.SignInExternalUserAsync(user.ProviderName, user.UserName);
+
+                var id = info.Principal.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).Select(c=>c.Value).FirstOrDefault();
+
+                var user = await userManager.RegisterExternal(info.LoginProvider, id  ?? Input.Email, info.Principal.Identity.Name ?? Input.Email, Input.Email);
+                var result = await signInManager.SignInExternalUserAsync(user.ProviderName, user);
 
                 if (result.Succeeded)
                 {

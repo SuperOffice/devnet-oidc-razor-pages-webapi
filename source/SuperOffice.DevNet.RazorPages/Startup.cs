@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.Twitter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using SuperOffice.DevNet.Asp.Net.RazorPages.Data;
 using SuperOffice.DevNet.Asp.Net.RazorPages.Models.Identity;
 using System;
@@ -58,7 +60,7 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = "SuperOffice"; // OpenIdConnectDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
             .AddCookie(options =>
             {
@@ -69,6 +71,11 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.IsEssential = true;
                 options.Cookie.HttpOnly = true;
+            })
+            .AddTwitter(options =>
+            {
+                Configuration.Bind("Twitter", options);
+                options.SignInScheme = IdentityConstants.ExternalScheme;
             })
             .AddOpenIdConnect("SuperOffice", "SuperOffice", options =>
             {
@@ -89,6 +96,8 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                 options.Scope.Add("openid");
                 options.SaveTokens = true;
                 options.CallbackPath = new Microsoft.AspNetCore.Http.PathString("/callback");
+
+                options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "http://schemes.superoffice.net/identity/upn");
                 options.ClaimActions.MapJsonKey(ClaimTypes.Email, "http://schemes.superoffice.net/identity/email");
 
                 options.Events = new OpenIdConnectEvents
@@ -127,11 +136,12 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                         }
 
                         return Task.CompletedTask; //Task.FromResult(0);
-                    },
+                    }
                 };
 
             })
             .AddCookie(IdentityConstants.ExternalScheme);
+
             services.AddSession(options =>
             {
                 options.Cookie.SameSite = SameSiteMode.None;
@@ -181,6 +191,8 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            app.UseRefreshTokenMiddleware();
 
             app.UseRouting();
 

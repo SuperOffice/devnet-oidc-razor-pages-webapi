@@ -115,10 +115,10 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages.Data
         {
             // pull out only the fields needed to update and add those changes as a PATCH structure
             patch = JArray.Parse("[]");
-            bool updated = false;
-            updated = patch.CompareAndReplace(oldContact.Name, newContact.Name, "/Name");
-            updated = patch.CompareAndReplace(oldContact.Department, newContact.Department, "/Department");
-            return updated;
+            
+            var nameUpdated = patch.CompareAndReplace(oldContact.Name, newContact.Name, "/Name");
+            var deptUpdated = patch.CompareAndReplace(oldContact.Department, newContact.Department, "/Department");
+            return nameUpdated || deptUpdated;
         }
 
         /// <summary>
