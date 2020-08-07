@@ -1,17 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.VisualStudio.Web.CodeGeneration;
 using Newtonsoft.Json.Linq;
 using SuperOffice.DevNet.Asp.Net.RazorPages.Middleware;
-using SuperOffice.DevNet.Asp.Net.RazorPages.Models.Identity;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
@@ -23,7 +19,6 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
     {
         private readonly RequestDelegate next;
         private readonly ILogger<RefreshTokenMiddleware> logger;
-        private readonly IAuthenticationService authenticationService;
         private readonly IAuthenticationSchemeProvider schemeProvider;
         private readonly IOptionsMonitor<OpenIdConnectOptions> authOptions;
         private readonly IOptionsMonitor<OAuthOptions> oAuthOptions;
@@ -44,44 +39,51 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
 
         public async Task Invoke(HttpContext context)
         {
-            // call next first, to establish the User principal.
+            logger.LogInformation("RefreshTokenMiddleware: entered Invoke.");
 
-            await next(context);
-
-            // process only is user is authenticated, 
-            // i.e. has authenticated and tokens have been stored.
+            // only process authenticated users, i.e. has stored tokens
 
             AuthenticateResult authenticateResult = await context.AuthenticateAsync();
 
             if (authenticateResult != null && authenticateResult.Succeeded)
             {
-                AuthenticationProperties properties = authenticateResult.Properties;
+                logger.LogInformation("RefreshTokenMiddleware.");
 
                 // determine if the access token is expired
 
-                var expiresAt = properties.GetTokenValue("expires_at");
+                var expiresAt = authenticateResult.Properties.GetTokenValue("expires_at");
 
-                if (expiresAt == null)
+                // some providers do not set expires_at or refresh_token, i.e. twitter.
+
+                if (expiresAt != null)
                 {
-                    // authentication provider did not supply tokens to renew.
-                    return;
+                    DateTime accessTokenExpiresAt = DateTime.Parse(expiresAt, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+
+                    if (accessTokenExpiresAt <= DateTime.UtcNow.AddMinutes(-5))
+                    {
+                        await RefreshAccessTokenAsync(context, authenticateResult);
+                    }
                 }
-
-                expiresAt = properties.Items.Where(kv => kv.Key.Contains("expires", StringComparison.OrdinalIgnoreCase)).Select(kv => kv.Value).FirstOrDefault();
-                DateTime accessTokenExpiresAt = DateTime.Parse(expiresAt, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-
-                if (accessTokenExpiresAt <= DateTime.UtcNow)
+                else
                 {
-                    await RefreshAccessTokenAsync(context, authenticateResult);
+                    logger.LogInformation("RefreshTokenMiddleware: {0} provider has not stored expired_at token.", authenticateResult.Principal.Identity.AuthenticationType);
                 }
             }
+
+            logger.LogInformation("RefreshTokenMiddleware: calling next(context).");
+
+            await next(context);
+
+            logger.LogInformation("RefreshTokenMiddleware: leaving Invoke.");
         }
 
         private async Task RefreshAccessTokenAsync(HttpContext context, AuthenticateResult authResult)
         {
+            logger.LogInformation("RefreshTokenMiddleware: entered RefreshAccessTokenAsync.");
+
             var properties = authResult.Properties;
             var authOptions = await GetSettingsAsync(context, authResult.Principal.Identity.AuthenticationType);
-
+            
             var refreshToken = properties.GetTokenValue(OpenIdConnectParameterNames.RefreshToken);
 
             if (string.IsNullOrEmpty(refreshToken))
@@ -99,6 +101,7 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
 
             var encodedContent = new FormUrlEncodedContent(parameters);
 
+            logger.LogInformation("RefreshTokenMiddleware: requesting new tokens.");
 
             var tokenResponse = await authOptions.Options.Backchannel.PostAsync(
                 authOptions.TokenEndpoint, encodedContent, context.RequestAborted);
@@ -106,40 +109,34 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
             if (tokenResponse.IsSuccessStatusCode)
             {
                 var responseStream = await tokenResponse.Content.ReadAsStringAsync();
-
-                #region System.Text.Json Alternative
-                //var payLoad = System.Text.Json.JsonDocument
-                //props.UpdateTokenValue("access_token", payload.RootElement.GetString("access_token"));
-                //props.UpdateTokenValue("refresh_token", payload.RootElement.GetString("refresh_token"));
-                //if (payload.RootElement.TryGetProperty("expires_in", out var property) && property.TryGetInt32(out var seconds))
-                //{
-                //    var expiresAt = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(seconds);
-                //    props.UpdateTokenValue("expires_at", expiresAt.ToString("o", CultureInfo.InvariantCulture));
-                //}.Parse(responseStream); 
-                #endregion
-
                 var json = JObject.Parse(responseStream);
+                
                 string accessToken = json[OpenIdConnectParameterNames.AccessToken].Value<string>();
-                string idToken = json[OpenIdConnectParameterNames.IdToken].Value<string>();
-                string tokenType = json[OpenIdConnectParameterNames.TokenType].Value<string>();
-                int expiresIn = json[OpenIdConnectParameterNames.ExpiresIn].Value<int>();
+                string idToken     = json[OpenIdConnectParameterNames.IdToken].Value<string>();
+                string tokenType   = json[OpenIdConnectParameterNames.TokenType].Value<string>();
+                int expiresIn      = json[OpenIdConnectParameterNames.ExpiresIn].Value<int>();
 
                 var expiresAt = (DateTimeOffset.UtcNow + TimeSpan.FromSeconds(expiresIn)).ToString("o", CultureInfo.InvariantCulture);
+
+                logger.LogInformation("RefreshTokenMiddleware: new access token received.\r\n{0}", accessToken);
 
                 properties.UpdateTokenValue(OpenIdConnectParameterNames.AccessToken, accessToken);
                 properties.UpdateTokenValue(OpenIdConnectParameterNames.IdToken, idToken);
                 properties.UpdateTokenValue(OpenIdConnectParameterNames.TokenType, tokenType);
                 properties.UpdateTokenValue("expires_at", expiresAt);
 
-                await context.AuthenticateAsync(authResult.Ticket.AuthenticationScheme);
-                await context.SignInAsync(context.User, properties);
+                await context.SignInAsync(authResult.Principal, properties);
             }
+
+            logger.LogInformation("RefreshTokenMiddleware: entered RefreshAccessTokenAsync.");
 
             return;
         }
 
         private async Task<MiddlewareAuthenticationOptions> GetSettingsAsync(HttpContext context, string authScheme)
         {
+            logger.LogInformation("RefreshTokenMiddleware: entered GetSettingsAsync.");
+
             OpenIdConnectOptions oidcOptions;
             OAuthOptions oAuthOptions;
 
@@ -158,6 +155,9 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                 try
                 {
                     configuration = await oidcOptions.ConfigurationManager.GetConfigurationAsync(context.RequestAborted);
+
+                    logger.LogInformation("RefreshTokenMiddleware: leaving GetSettingsAsync with OIDC settings.");
+
                     return new MiddlewareAuthenticationOptions
                     {
                         ClientId = oidcOptions.ClientId,
@@ -169,9 +169,8 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                 }
                 catch (Exception e)
                 {
-                    // git oAuthOptions a try...
-
-                    // throw new InvalidOperationException($"Unable to load OpenID configuration for configured scheme: {e.Message}");
+                    // give oAuthOptions a try...
+                    logger.LogError("RefreshTokenMiddleware: GetSettingsAsync failed using OIDC settings.");
                 }
             }
 
@@ -180,6 +179,8 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
                 oAuthOptions = this.oAuthOptions as OAuthOptions;
                 if (oAuthOptions != null)
                 {
+                    logger.LogInformation("RefreshTokenMiddleware: leaving GetSettingsAsync with OAuth settings.");
+
                     return new MiddlewareAuthenticationOptions
                     {
                         ClientId = oAuthOptions.ClientId,
@@ -192,6 +193,8 @@ namespace SuperOffice.DevNet.Asp.Net.RazorPages
             }
             catch (Exception e)
             {
+                logger.LogError("RefreshTokenMiddleware: GetSettingsAsync failed to get any OIDC or OAuth settings.");
+
                 throw new InvalidOperationException($"Unable to load RemoteAuthenticationOptions configuration for configured scheme: {e.Message}", e);
             }
 
