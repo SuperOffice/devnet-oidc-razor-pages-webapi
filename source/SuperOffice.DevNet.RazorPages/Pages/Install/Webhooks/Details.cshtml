@@ -1,0 +1,81 @@
+﻿@page
+@model SuperOffice.DevNet.Asp.Net.RazorPages.Pages.Install.Webhooks.DetailsModel
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>WebhookModel</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.WebhookModel.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.WebhookModel.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.WebhookModel.Events)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.WebhookModel.Events)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.WebhookModel.TargetUrl)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.WebhookModel.TargetUrl)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.WebhookModel.Secret)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.WebhookModel.Secret)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.WebhookModel.State)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.WebhookModel.State)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.WebhookModel.Type)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.WebhookModel.Type)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.WebhookModel.Headers)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.WebhookModel.Headers)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.WebhookModel.Registered)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.WebhookModel.Registered)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.WebhookModel.RegisteredByName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.WebhookModel.RegisteredByName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.WebhookModel.Updated)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.WebhookModel.Updated)
+        </dd>
+
+    </dl>
+</div>
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.WebhookModel.WebhookId">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
+</div>

@@ -1,0 +1,35 @@
+﻿@page
+@model SuperOffice.DevNet.Asp.Net.RazorPages.Pages.Install.Webhooks.DeleteAllModel
+@{
+    ViewData["Title"] = "DeleteAll";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Delete All My App Webhooks</h1>
+
+<form method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.WebHooks[0].Name)
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.WebHooks)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button class="btn btn-superoffice btn-lg">Delete all app webhooks</button> |
+    <div>
+        <p>&nbsp;</p>
+        <a asp-page="./Index">Back to List</a>
+    </div>
+</form>

@@ -1,0 +1,69 @@
+﻿@page
+@model SuperOffice.DevNet.Asp.Net.RazorPages.Pages.Install.Webhooks.CreateModel
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Create</h1>
+
+<h4>WebhookModel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="WebhookModel.Name" class="control-label"></label>
+                <input asp-for="WebhookModel.Name" class="form-control" />
+                <span asp-validation-for="WebhookModel.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebhookModel.Events" class="control-label"></label>
+                <input asp-for="WebhookModel.Events" class="form-control" />
+                <span asp-validation-for="WebhookModel.Events" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebhookModel.TargetUrl" class="control-label"></label>
+                <input asp-for="WebhookModel.TargetUrl" class="form-control" />
+                <span asp-validation-for="WebhookModel.TargetUrl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebhookModel.Secret" class="control-label"></label>
+                <input asp-for="WebhookModel.Secret" class="form-control" />
+                <span asp-validation-for="WebhookModel.Secret" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebhookModel.State" class="control-label"></label>
+                <select asp-for="WebhookModel.State" asp-items="Html.GetEnumSelectList<WebhookState>()">
+                    <option value=""></option>
+                </select>
+                <span asp-validation-for="WebhookModel.State" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebhookModel.Type" class="control-label"></label>
+                <select asp-for="WebhookModel.Type" asp-items="Html.GetEnumSelectList<WebhookType>()">
+                    <option value=""></option>
+                </select>
+                <span asp-validation-for="WebhookModel.Type" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WebhookModel.Headers" class="control-label"></label>
+                <input asp-for="WebhookModel.Headers" class="form-control" />
+                <span asp-validation-for="WebhookModel.Headers" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
