@@ -9,5 +9,5 @@ SuperOffice Quickstart ASP.NET Core Razor Pages application that demonstrates:
 
 ## Quickstart URL
 
-View [quickstart application](https://community.superoffice.com/en/developer/create-apps/quickstart/create-aspdotnet-core-app/).
+View [quickstart application](https://docs.superoffice.com/api/tutorials/auth-code-flow-quickstart.html).
 
